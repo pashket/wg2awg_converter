@@ -1,6 +1,6 @@
 
 document.getElementById('warpButton').onclick = function() {
-    window.location.href = 'https://my-other-projects.vercel.app/';
+    window.location.href = 'https://t.me/warp_1_1_1_1';
 }
 
 document.getElementById('promoButton').onclick = function() {
@@ -32,12 +32,7 @@ function toggleJunkContainer() {
   }
 }
 
-document.getElementById('nojunk').addEventListener('change', function() {
-  if (!this.disabled) {
-    toggleJunkContainer();
-    convert();
-  }
-});
+
 
 function toggleAWG15Containers() {
   const awg15Enabled = document.getElementById('awg15').checked;
@@ -217,28 +212,41 @@ function parseWGConfig(text) {
     peers: []
   };
   let currentSection = null;
+  let peerIndex = -1;
 
-  text.split('\n').forEach(line => {
-    line = line.trim();
-    if (!line) return;
+  const lines = text.split('\n');
+  
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i].trim();
+    if (!line) continue;
 
-    if (currentSection === 'peer' && line.startsWith('#')) {
-      const nameMatch = line.match(/#\s*(.+)/);
-      if (nameMatch) {
-        config.peers[config.peers.length - 1].name = nameMatch[1].trim();
-      }
-      return;
-    }
-
+    // Обработка секций
     if (line.startsWith('[') && line.endsWith(']')) {
       currentSection = line.slice(1, -1).toLowerCase();
-      if (currentSection === 'peer') config.peers.push({ amneziaOptions: {} });
-      return;
+      if (currentSection === 'peer') {
+        peerIndex++;
+        config.peers.push({ amneziaOptions: {} });
+        
+        // Проверяем следующую строку на наличие имени (комментария)
+        if (i + 1 < lines.length) {
+          const nextLine = lines[i + 1].trim();
+          const nameMatch = nextLine.match(/^#\s*(.+)/);
+          if (nameMatch) {
+            config.peers[peerIndex].name = nameMatch[1].trim();
+            i++; // Пропускаем обработанную строку с именем
+          }
+        }
+      }
+      continue;
     }
 
-    const [key, ...valueParts] = line.split('=');
-    const cleanKey = key.trim().toLowerCase();
-    const value = valueParts.join('=').trim();
+    // Парсинг ключ=значение
+    const equalsIndex = line.indexOf('=');
+    if (equalsIndex === -1) continue;
+
+    const key = line.substring(0, equalsIndex).trim();
+    const value = line.substring(equalsIndex + 1).trim();
+    const cleanKey = key.toLowerCase();
 
     if (currentSection === 'interface') {
       if (['jc', 'jmin', 'jmax', 's1', 's2', 'h1', 'h2', 'h3', 'h4'].includes(cleanKey)) {
@@ -246,17 +254,26 @@ function parseWGConfig(text) {
       } else {
         config.interface[cleanKey] = value;
       }
-    } else if (currentSection === 'peer') {
-      const peer = config.peers[config.peers.length - 1];
+    } else if (currentSection === 'peer' && peerIndex >= 0) {
+      const peer = config.peers[peerIndex];
       if (['jc', 'jmin', 'jmax', 's1', 's2', 'h1', 'h2', 'h3', 'h4'].includes(cleanKey)) {
         peer.amneziaOptions[cleanKey] = value;
       } else if (cleanKey === 'presharedkey') {
-        peer.presharedKey = value; // Добавляем обработку PresharedKey
+        peer.presharedKey = value;
       } else {
         peer[cleanKey] = value;
       }
     }
-  });
+  }
+
+  // Если имя не было найдено через комментарий после [Peer], пробуем извлечь из комментариев
+  if (config.peers.length > 0 && !config.peers[0].name) {
+    // Ищем любое вхождение # NL-FREE#43 в тексте
+    const nameMatch = text.match(/#\s*(NL-FREE#?\d+)/);
+    if (nameMatch) {
+      config.peers[0].name = nameMatch[1];
+    }
+  }
 
   return config;
 }
@@ -281,6 +298,19 @@ function convertToClashProxy(wgConfig, fileName) {
     }
   }
 
+  const addresses = interfaceData.address.split(',').map(addr => addr.trim());
+  let ipv4 = '';
+  let ipv6 = '';
+  
+  addresses.forEach(addr => {
+    // Проверяем, содержит ли адрес двоеточие (признак IPv6)
+    if (addr.includes(':')) {
+      ipv6 = addr;
+    } else {
+      ipv4 = addr;
+    }
+  });
+
   const amneziaOptions = {};
   for (const key of ['jc', 'jmin', 'jmax', 's1', 's2', 'h1', 'h2', 'h3', 'h4']) {
     const interfaceValue = interfaceData.amneziaOptions[key];
@@ -294,10 +324,12 @@ function convertToClashProxy(wgConfig, fileName) {
     type: "wireguard",
     server: peerData.endpoint.split(':')[0],
     port: parseInt(peerData.endpoint.split(':')[1]),
-    ip: interfaceData.address.split('/')[0],
+    ip: interfaceData.address,
+	ipv4: ipv4,
+	ipv6: ipv6,
     private_key: interfaceData.privatekey,
     public_key: peerData.publickey,
-    preshared_key: peerData.presharedKey, // Добавляем PresharedKey в выходные данные
+    preshared_key: peerData.presharedKey, 
     allowed_ips: peerData.allowedips.split(',').map(ip => `'${ip.trim()}'`),
     udp: true,
     mtu: 1420,
@@ -441,7 +473,10 @@ function generateClashYaml() {
     yaml += `  type: ${proxy.type}\n`;
     yaml += `  server: ${proxy.server}\n`;
     yaml += `  port: ${proxy.port}\n`;
-    yaml += `  ip: ${proxy.ip}\n`;
+    yaml += `  ip: ${proxy.ipv4}\n`;
+	if (proxy.ipv6) {
+    yaml += `  ipv6: ${proxy.ipv6}\n`;
+    }
     yaml += `  private-key: ${proxy.private_key}\n`;
     yaml += `  public-key: ${proxy.public_key}\n`;
     yaml += `  allowed-ips: [${proxy.allowed_ips.join(', ')}]\n`;
