@@ -56,6 +56,7 @@ function toggleAWG15Containers() {
       if (wiresockContainer) wiresockContainer.classList.remove('hidden');
     }
   }
+    toggleNolanContainer();
 }
 
 // Добавляем обработчики для радиокнопок и чекбокса awg15
@@ -530,7 +531,7 @@ function generateAWGYaml() {
   };
 }
 
-function generateKaringYaml() {
+/* function generateKaringYaml() {
   if (proxyList.length === 0) {
     alert('Не удалось обработать ни один файл');
     return;
@@ -591,7 +592,7 @@ function generateKaringYaml() {
       .catch(err => alert('Не удалось скопировать: ', err));
   };
 }
-
+*/
 function downloadYAML(yamlContent, fileName) {
   const blob = new Blob([yamlContent], { type: 'text/yaml; charset=utf-8' });
   const url = URL.createObjectURL(blob);
@@ -636,6 +637,7 @@ function generateSingleAWGConfig(proxy) {
   const amneziaOptions = proxy['amnezia-wg-option'];
   const awg15Enabled = document.getElementById('awg15').checked;
   const nojunkEnabled = document.getElementById('nojunk').checked;
+  const nolanEnabled = document.getElementById('nolan').checked;
   
   const selectedOption = document.querySelector('input[name="option"]:checked').id;
   
@@ -703,7 +705,11 @@ function generateSingleAWGConfig(proxy) {
   awgConfig += `PublicKey = ${proxy.public_key}\n`;
   if (proxy.preshared_key) {
   awgConfig += `PresharedKey = ${proxy.preshared_key}\n`;}
-  awgConfig += `AllowedIPs = ${proxy.allowed_ips.join(', ').replace(/'/g, '')}\n`;
+   if (nolanEnabled) {
+    awgConfig += `AllowedIPs = 1.0.0.0/8, 2.0.0.0/7, 4.0.0.0/6, 8.0.0.0/7, 11.0.0.0/8, 12.0.0.0/6, 16.0.0.0/4, 32.0.0.0/3, 64.0.0.0/3, 96.0.0.0/4, 112.0.0.0/5, 120.0.0.0/6, 124.0.0.0/7, 126.0.0.0/8, 128.0.0.0/3, 160.0.0.0/5, 168.0.0.0/8, 169.0.0.0/9, 169.128.0.0/10, 169.192.0.0/11, 169.224.0.0/12, 169.240.0.0/13, 169.248.0.0/14, 169.252.0.0/15, 169.255.0.0/16, 170.0.0.0/7, 172.0.0.0/12, 172.32.0.0/11, 172.64.0.0/10, 172.128.0.0/9, 173.0.0.0/8, 174.0.0.0/7, 176.0.0.0/4, 192.0.0.0/9, 192.128.0.0/11, 192.160.0.0/13, 192.169.0.0/16, 192.170.0.0/15, 192.172.0.0/14, 192.176.0.0/12, 192.192.0.0/10, 193.0.0.0/8, 194.0.0.0/7, 196.0.0.0/6, 200.0.0.0/5, 208.0.0.0/4, 224.0.0.0/4, ::/1, 8000::/2, c000::/3, e000::/4, f000::/5, f800::/6, fe00::/9, fec0::/10, ff00::/8\n`;
+  } else {
+    awgConfig += `AllowedIPs = ${proxy.allowed_ips.join(', ').replace(/'/g, '')}\n`;
+  }
   awgConfig += `Endpoint = ${proxy.server}:${proxy.port}\n`;
   
   return awgConfig;
@@ -754,14 +760,16 @@ function enableToggles() {
   const selectedOption = document.querySelector('input[name="option"]:checked').id;
   const awg15Toggle = document.getElementById('awg15');
   const nojunkToggle = document.getElementById('nojunk');
+  const nolanToggle = document.getElementById('nolan');
   awg15Toggle.disabled = false;
   nojunkToggle.disabled = false;
+  nolanToggle.disabled = false;
   
   toggleAWG15Containers();
   toggleJunkContainer();
 }
 
-['awg15', 'nojunk', 'clash', 'awg', 'karing', 'fake1', 'fake2', 'fake3', 'junk1', 'junk2', 'junk3', 'i1', 'i2', 'i3', 'i4', 'i5', 'id', 'ip', 'ib'].forEach(id => {
+['nolan', 'awg15', 'nojunk', 'clash', 'awg', 'karing', 'fake1', 'fake2', 'fake3', 'junk1', 'junk2', 'junk3', 'i1', 'i2', 'i3', 'i4', 'i5', 'id', 'ip', 'ib'].forEach(id => {
     document.getElementById(id)?.addEventListener('change', function() {
 		
         if (!this.disabled) {
@@ -835,3 +843,22 @@ if (selectDomainBtn) {
 });
 }
 
+// NolanClash
+function toggleNolanContainer() {
+  const nolanEnabled = document.getElementById('nolan').checked;
+  const selectedOption = document.querySelector('input[name="option"]:checked').id;
+  
+  // Отключаем свитч nolan при выборе clash
+  if (selectedOption === 'clash') {
+    const nolanToggle = document.getElementById('nolan');
+    if (nolanToggle) {
+      nolanToggle.disabled = true;
+      nolanToggle.checked = false;
+    }
+  } else {
+    const nolanToggle = document.getElementById('nolan');
+    if (nolanToggle) {
+      nolanToggle.disabled = false;
+    }
+  }
+}
