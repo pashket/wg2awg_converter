@@ -40,6 +40,7 @@ function toggleJunkContainer() {
 
 function toggleAWG15Containers() {
   const awg15Enabled = document.getElementById('awg15').checked;
+  const awg15Disabled = document.getElementById('awg15').disabled;
   const selectedOption = document.querySelector('input[name="option"]:checked').id;
   const awg15Container = document.getElementById('15awg');
   const wiresockContainer = document.getElementById('15wiresock');
@@ -56,7 +57,7 @@ function toggleAWG15Containers() {
       if (wiresockContainer) wiresockContainer.classList.remove('hidden');
     }
   }
-    toggleNolanContainer();
+  if (awg15Disabled) {} else {toggleNolanContainer()}
 }
 
 // Добавляем обработчики для радиокнопок и чекбокса awg15
