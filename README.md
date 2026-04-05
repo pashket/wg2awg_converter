@@ -1,1 +1,1 @@
-# WireGuard to AmneziaWG 1.5+ Converter
+Online version on [GitHub Pages](https://pashket.github.io/wg2awg_cenverter/)
