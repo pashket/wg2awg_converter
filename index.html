@@ -7,11 +7,13 @@
 	<link rel="stylesheet" href="styles.css">
 	<script defer src="script.js"></script>
 	<script defer src="quic.js"></script>
-  <title>Proton Конвертер</title>
+  <title>wg2awg конвертер</title>
 </head>
 <body>
   <div class="wrapper">
-    <img id="logo" src="logo2.svg" alt="Логотип">
+	<div>
+	<h1>Конвертер конфигов WireGuard в AmneziaWG 1.5</h1>
+	</div>
 	<div class="container-columns">
 		<div class="container">
 			<label for="wgFiles" class="custom-file-upload" id="fileUploadLabel">Выбрать файлы</label>
@@ -38,7 +40,7 @@
 			<div class="musor1">
 				<label><div class="checkbox">
 					<input type="radio" id="junk1" name="junk" class="radio" checked/>
-					<span class="radio-fakeradio"></span> jc = 3 jmin = 1 jmax = 3 
+					<span class="radio-fakeradio"></span> jc = 4 jmin = 25 jmax = 85 
 				</div></label>
 				<br>
 				<label><div class="checkbox">
@@ -132,13 +134,14 @@
 					<button class="download-btn hidden" id="copyBtn">Скопировать</button>
 				</div>
 			</div>
+			<!--
 			<button id="tgButton" style="max-width: 400px;"><span class="button__text">Telegram</span></button>
 			<button id="promoButton" class="glow-on-hover"><span class="button__text">Amnezia <a style="color: #A40059">Premium<a></span></button>
 			<button id="warpButton" style="max-width: 400px;"><span class="button__text">Другие проекты</span></button>
-			<div id="info1">    Сделано на основе ресурсов 
-    <a href="https://zaeboba.github.io/page/archive/clash.html" target="_blank" rel="noopener noreferrer">zaeboba</a> 
-    и 
-    <a href="https://sageptr.github.io/mini_quic_generator/" target="_blank" rel="noopener noreferrer">sageptr</a></div>
+			-->
+			<div id="info1">
+			Сделано на основе <a href="https://github.com/proton-converter/proton-converter.github.io" target="_blank" rel="noopener noreferrer">proton converter</a><br>
+			<a href="https://www.wireguardconfig.com/qrcode" target="_blank" rel="noopener noreferrer">Генератор QR кодов для WireGuard</a>
 		</div>
 		<div id="Modal" class="modal">
   <div class="modal-content">
